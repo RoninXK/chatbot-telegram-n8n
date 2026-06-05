@@ -1,0 +1,292 @@
+{
+  "name": "Chatbot Telegram com Groq copy",
+  "nodes": [
+    {
+      "parameters": {
+        "chatId": "={{ $('Edit Fields').item.json.chat_id }}",
+        "text": "={{ $('Groq').item.json.choices[0].message.content }}",
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        688,
+        -96
+      ],
+      "id": "2476e7bf-5984-4886-904a-b86d134c0f90",
+      "name": "Send a text message",
+      "webhookId": "4043e9ab-edf7-45cb-a33f-c43b1964cc80",
+      "credentials": {
+        "telegramApi": {
+          "id": "pw2N3DKBweAZwTNu",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "updates": [
+          "message"
+        ],
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.telegramTrigger",
+      "typeVersion": 1.3,
+      "position": [
+        -80,
+        -96
+      ],
+      "id": "7e768042-c9cc-49fc-837a-03f3e655a12a",
+      "name": "Telegram Trigger",
+      "webhookId": "a00454bb-4f4c-4b4a-9b45-4e2ec584dff3",
+      "credentials": {
+        "telegramApi": {
+          "id": "pw2N3DKBweAZwTNu",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.groq.com/openai/v1/chat/completions",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "contentType": "=json",
+        "specifyBody": "json",
+        "bodyParameters": {
+          "parameters": [
+            {}
+          ]
+        },
+        "jsonBody": "={\n  \"model\": \"llama-3.1-8b-instant\",\n  \"temperature\": 0.5,\n  \"max_tokens\": 500,\n  \"messages\": [\n    {\n      \"role\": \"system\",\n      \"content\": \"Você é um chatbot educado, claro e objetivo. Responda sempre em português. Explique os assuntos de forma simples e direta. Se não souber uma resposta, diga que não sabe em vez de inventar informações.\"\n    },\n    {\n      \"role\": \"user\",\n      \"content\": \"{{ $json.texto_usuario }}\"\n    }\n  ]\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        512,
+        -96
+      ],
+      "id": "b5551a4f-4b2d-453d-a98d-99dce8dac8d9",
+      "name": "Groq"
+    },
+    {
+      "parameters": {
+        "mode": "expression",
+        "output": "={{ $json.comando === \"/start\" ? 0 : $json.comando === \"/help\" ? 1 : $json.comando === \"/sobre\" ? 2 : 3 }}"
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.4,
+      "position": [
+        288,
+        -400
+      ],
+      "id": "f72c8b88-6c38-4fce-ac8e-38b24effb1d2",
+      "name": "Switch"
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $json.chat_id }}",
+        "text": "=Olá! Eu sou um chatbot criado com Telegram, n8n e API de Inteligência Artificial.  \nVocê pode me enviar uma pergunta normal ou usar os comandos.",
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        512,
+        -528
+      ],
+      "id": "a837c1a4-04ff-4d38-a059-c08aae1e178f",
+      "name": "Responder /start",
+      "webhookId": "2d010dc6-f6a4-4389-b534-84458a3915e8",
+      "credentials": {
+        "telegramApi": {
+          "id": "pw2N3DKBweAZwTNu",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $json.chat_id }}",
+        "text": "=Comandos disponíveis:\n/start - Iniciar o bot \n/help - Ver esta mensagem de ajuda \n/sobre - Ver informações sobre o projeto  \nVocê também pode me enviar qualquer pergunta, e eu responderei usando inteligência artificial.",
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        512,
+        -384
+      ],
+      "id": "f96cff2f-1ab8-497d-a6fa-b2fafe011dc1",
+      "name": "Responder /help",
+      "webhookId": "21d536b9-e4aa-4c5e-88e2-3eec575cf944",
+      "credentials": {
+        "telegramApi": {
+          "id": "pw2N3DKBweAZwTNu",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $json.chat_id }}",
+        "text": "=Este chatbot foi desenvolvido como atividade prática utilizando Telegram, n8n e uma API de Inteligência Artificial.\n\nO fluxo funciona assim:\n\n1. O usuário envia uma mensagem no Telegram.\n2. O n8n recebe essa mensagem pelo Telegram Trigger.\n3. O nó Edit Fields organiza as informações recebidas, como o texto da mensagem, o chat ID e o comando enviado.\n4. O nó Switch verifica se a mensagem é um comando, como /start, /help ou /sobre.\n5. Se for um comando, o bot envia uma resposta pronta.\n6. Se for uma pergunta comum, a mensagem é enviada para a API de Inteligência Artificial.\n7. A resposta gerada pela IA é enviada automaticamente de volta ao usuário no Telegram.\n\nO objetivo do projeto é demonstrar, na prática, a integração entre sistemas, o uso de APIs e a automação de fluxos com o n8n.",
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        512,
+        -240
+      ],
+      "id": "b06a2385-fecf-4f52-b02c-e18fa08d559f",
+      "name": "Responder /sobre",
+      "webhookId": "1411b02a-6519-4fbf-9bf1-c897cb242898",
+      "credentials": {
+        "telegramApi": {
+          "id": "pw2N3DKBweAZwTNu",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "b2ddfc7d-9eeb-4b25-b46d-894e5b093bf1",
+              "name": "chat_id",
+              "value": "={{ $json.message.chat.id }}",
+              "type": "string"
+            },
+            {
+              "id": "6a29d4fc-8431-436d-9517-8016a62e9501",
+              "name": "texto_usuario",
+              "value": "={{ $json.message.text }}",
+              "type": "string"
+            },
+            {
+              "id": "170cc517-cc47-4656-b481-93b1a9edb910",
+              "name": "comando",
+              "value": "={{ ($json.message.text || '').trim().toLowerCase().split(' ')[0] }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        64,
+        -96
+      ],
+      "id": "ff322c1b-c12b-4bc7-928d-71d847747316",
+      "name": "Edit Fields"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Telegram Trigger": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Groq": {
+      "main": [
+        [
+          {
+            "node": "Send a text message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Switch": {
+      "main": [
+        [
+          {
+            "node": "Responder /start",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Responder /help",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Responder /sobre",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Groq",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Responder /start": {
+      "main": [
+        []
+      ]
+    },
+    "Responder /sobre": {
+      "main": [
+        []
+      ]
+    },
+    "Edit Fields": {
+      "main": [
+        [
+          {
+            "node": "Switch",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false
+  },
+  "versionId": "0675fe8a-b1fd-4c8f-9e85-bea95700a7aa",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "0bf8d41f740d5aa2f43210f411c26f2833c202b133a4da087c35fd6dc6eadccd"
+  },
+  "id": "mJ33oiWjPSEsE9jI",
+  "tags": []
+}
